@@ -21,7 +21,6 @@ CONNECTION = pyodbc.connect("DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
 CONNECTION.autocommit = True
 
 
-
 @app.get("/")
 async def root():
     c = CONNECTION.cursor()
@@ -37,7 +36,7 @@ async def root():
 
 
 @app.post("/post")
-def say_hello(name: str):
+def say_hello(employee, order, cpe, department, phone: str):
     c = CONNECTION.cursor()
     c.execute(
         'SELECT TOP 1 ИнвНомер.*, ИнвНомер.КодИнвНомер, ИнвНомер.ДатаВыдИнвНом FROM ИнвНомер '
@@ -48,15 +47,16 @@ def say_hello(name: str):
     c_to_insert = CONNECTION.cursor()
     c_to_insert.execute(
         """UPDATE ИнвНомер 
-        SET ИнвНомер.ФИОИсполнит = (?), ИнвНомер.ДатаВыдИнвНом = (?)
-        WHERE ((ИнвНомер.КодИнвНомер)=(?));""", (name, datetime.date.today(), item))
+        SET ИнвНомер.ФИОИсполнит = (?), ИнвНомер.ДатаВыдИнвНом = (?), 
+        ИнвНомер.ЦКДИ = (?), ИнвНомер.ФИОГИП = (?), ИнвНомер.НомОтдела = (?), ИнвНомер.Телефон = (?) 
+        WHERE ((ИнвНомер.КодИнвНомер)=(?));""", (employee, datetime.date.today(), order, cpe, department, phone, item))
     CONNECTION.commit()
     c.execute(
         'SELECT TOP 1 ИнвНомер.*, ИнвНомер.КодИнвНомер, ИнвНомер.ДатаВыдИнвНом FROM ИнвНомер '
         'WHERE (ИнвНомер.КодИнвНомер=(?))', (item))
     print(c.fetchall())
     c.close()
-    return {"message": f"Hello {name}"}
+    return {"message": f"Hello {employee}"}
 
 
 if __name__ == "__main__":
