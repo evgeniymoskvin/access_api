@@ -36,12 +36,13 @@ async def root():
 
 
 @app.post("/post")
-def say_hello(employee, order, cpe, department, phone: str):
+def say_hello(employee, order, cpe, department, phone: str, type_of_inventory_number: int):
     c = CONNECTION.cursor()
+    day_now = datetime.date.today().year
     c.execute(
         'SELECT TOP 1 ИнвНомер.*, ИнвНомер.КодИнвНомер, ИнвНомер.ДатаВыдИнвНом FROM ИнвНомер '
-        'WHERE (((ИнвНомер.ДатаВыдИнвНом) Is NOT Null) AND ((ИнвНомер.ГодИнвНом)=2024) AND ((ИнвНомер.КодТипИнвНомер)=1))'
-        'ORDER BY ИнвНомер.КодИнвНомер DESC')
+        'WHERE (((ИнвНомер.ДатаВыдИнвНом) Is NOT Null) AND ((ИнвНомер.ГодИнвНом)=(?)) AND ((ИнвНомер.КодТипИнвНомер)=(?)))'
+        'ORDER BY ИнвНомер.КодИнвНомер DESC', (day_now, type_of_inventory_number))
     item = int(c.fetchall()[0][0]) + 1
     print(item)
     c_to_insert = CONNECTION.cursor()
@@ -54,9 +55,10 @@ def say_hello(employee, order, cpe, department, phone: str):
     c.execute(
         'SELECT TOP 1 ИнвНомер.*, ИнвНомер.КодИнвНомер, ИнвНомер.ДатаВыдИнвНом FROM ИнвНомер '
         'WHERE (ИнвНомер.КодИнвНомер=(?))', (item))
-    print(c.fetchall())
+    # print(c.fetchall())
+    new_inventory = c.fetchall()[0][2]
     c.close()
-    return {"message": f"Hello {employee}"}
+    return {"new_inventory": f"{new_inventory}"}
 
 
 if __name__ == "__main__":
